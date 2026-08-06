@@ -156,6 +156,10 @@ uma falsa sensação de follow-up feito.
 
 ## Deploy na Vercel
 
+> 📋 O passo a passo completo — incluindo pré-requisitos, variáveis de ambiente e
+> um checklist de verificação fim a fim — está em [`DEPLOY.md`](DEPLOY.md).
+> O resumo abaixo cobre só a parte da Vercel.
+
 1. **Importar o repositório** na Vercel. Configure:
    - Root Directory: `apps/web`
    - Build Command: `cd ../.. && npm run build`
