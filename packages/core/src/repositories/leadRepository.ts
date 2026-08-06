@@ -9,6 +9,7 @@ import type {
 } from '../types/lead';
 import type { StatusLead } from '../types/enums';
 import { traduzirErroSupabase } from '../lib/erroSupabase';
+import { limparCnpj } from '../validacao/cnpj';
 
 /**
  * Unico ponto do sistema que consulta a tabela `leads`.
@@ -58,8 +59,7 @@ export async function listarLeads(
   if (filtro.responsavel_id) consulta = consulta.eq('responsavel_id', filtro.responsavel_id);
 
   if (filtro.busca?.trim()) {
-    const termo = `%${filtro.busca.trim()}%`;
-    consulta = consulta.or(`nome.ilike.${termo},email.ilike.${termo},cnpj.ilike.${termo}`);
+    consulta = consulta.or(montarClausulasDeBusca(filtro.busca).join(','));
   }
 
   const { data, error, count } = await consulta.order('criado_em', { ascending: false }).range(de, de + porPagina - 1);
@@ -169,6 +169,36 @@ export async function contarLeadsPorResponsavel(
   }
 
   return [...porMembro.values()].sort((a, b) => b.total - a.total);
+}
+
+/**
+ * Monta as clausulas do filtro `or()` da busca livre.
+ *
+ * A coluna `cnpj` guarda so digitos — o CHECK do banco garante `^[0-9]{14}$` —
+ * entao colar um CNPJ formatado ("33.000.167/0001-01"), que e exatamente como
+ * a pessoa copia, nunca casava. A quarta clausula cobre esse caso.
+ *
+ * As tres primeiras ficam intocadas de proposito: `or()` so SOMA alternativas,
+ * nunca restringe, entao toda busca que ja funcionava devolve o mesmo conjunto.
+ *
+ * O piso de 8 digitos evita que buscar um nome com numero ("Padaria 24h") vire
+ * uma varredura na coluna de CNPJ.
+ *
+ * Exportada para poder ser testada sem ir ao banco.
+ */
+export function montarClausulasDeBusca(busca: string): string[] {
+  const bruto = busca.trim();
+  if (!bruto) return [];
+
+  const termo = `%${bruto}%`;
+  const clausulas = [`nome.ilike.${termo}`, `email.ilike.${termo}`, `cnpj.ilike.${termo}`];
+
+  const digitos = limparCnpj(bruto);
+  if (digitos.length >= 8 && digitos !== bruto) {
+    clausulas.push(`cnpj.ilike.%${digitos}%`);
+  }
+
+  return clausulas;
 }
 
 /** O join do Supabase devolve um objeto aninhado; a UI so quer o nome. */
