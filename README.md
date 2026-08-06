@@ -55,11 +55,15 @@ npm install
 
 ### 3. Criar o banco
 
-No painel do Supabase, vá em **SQL Editor** e rode os três arquivos **nesta ordem**:
+No painel do Supabase, vá em **SQL Editor** e rode os quatro arquivos **nesta ordem**:
 
 1. `supabase/migrations/0001_schema.sql` — tabelas, enums, índices e triggers
 2. `supabase/migrations/0002_rls.sql` — Row Level Security
 3. `supabase/migrations/0003_seed.sql` — 4 templates de exemplo (um por canal)
+4. `supabase/migrations/0004_grants.sql` — fecha o `EXECUTE` de `eh_membro_ativo()` para o papel `anon`
+
+> O projeto **CRMAtria** já está com as quatro aplicadas. Esta lista serve para
+> montar um banco novo do zero (um projeto de teste, por exemplo).
 
 ### 4. Configurar as variáveis
 
@@ -171,8 +175,16 @@ curl -X POST "https://api.telegram.org/bot<SEU_TOKEN>/setWebhook" \
 Confira com `https://api.telegram.org/bot<SEU_TOKEN>/getWebhookInfo` — o campo
 `pending_update_count` deve ficar em 0 e `last_error_message` vazio.
 
-4. **Registrar o menu de comandos** (opcional, melhora a usabilidade):
-   o script `npm run dev:bot` já faz isso automaticamente ao subir.
+4. **Registrar o menu de comandos** — a listinha que aparece ao digitar `/`:
+
+```bash
+TELEGRAM_BOT_TOKEN=<token de produção> npm run bot:comandos
+```
+
+Rode uma vez por bot. É seguro fazer com o webhook ativo: `setMyCommands` é uma
+chamada de configuração, não consome updates, e o script nunca sobe polling.
+O `npm run dev:bot` também registra os comandos, mas só no bot que você usa em
+desenvolvimento — em produção quem faz isso é o comando acima.
 
 ---
 
