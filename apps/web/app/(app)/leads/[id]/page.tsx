@@ -12,6 +12,7 @@ import { EtiquetaStatus } from '@/components/ui/Etiqueta';
 import { ContatoRapido } from '@/components/leads/ContatoRapido';
 import { HistoricoContatos } from '@/components/leads/HistoricoContatos';
 import { BotaoRemoverLead } from '@/components/leads/BotaoRemoverLead';
+import { SeletorStatus } from '@/components/leads/SeletorStatus';
 
 /** Ficha do lead com contato rapido e historico (spec 6.2 e 6.4). */
 export default async function PaginaLead({ params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +38,8 @@ export default async function PaginaLead({ params }: { params: Promise<{ id: str
             <EtiquetaStatus status={lead.status} />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <SeletorStatus leadId={id} status={lead.status} />
             <Link href={`/leads/${id}/editar`} className="botao-secundario">
               Editar
             </Link>
