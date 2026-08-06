@@ -13,6 +13,7 @@ export * from './lib/erros';
 export * from './lib/env';
 export { criarClienteAdmin, type ClienteSupabase } from './lib/supabaseAdmin';
 export { obterProvedorDeEmail, type EmailParaEnviar, type ProvedorDeEmail } from './lib/emailProvider';
+export { gerarTokenVinculo, validarTokenVinculo, type VinculoValidado } from './lib/vinculoTelegram';
 
 // --- Services (caminho normal) ------------------------------------------------
 export * from './services/leadService';
