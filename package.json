@@ -1,0 +1,27 @@
+{
+  "name": "atria-crm",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sistema de prospeccao ativa (CRM leve) da Atria — bot do Telegram + painel web sobre Supabase.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=@atria/web",
+    "dev:bot": "npm run dev --workspace=@atria/bot",
+    "build": "npm run build --workspace=@atria/web",
+    "start": "npm run start --workspace=@atria/web",
+    "lint": "npm run lint --workspace=@atria/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}
