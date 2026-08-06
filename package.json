@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=@atria/web",
     "dev:bot": "npm run dev --workspace=@atria/bot",
+    "bot:comandos": "npm run comandos --workspace=@atria/bot",
     "build": "npm run build --workspace=@atria/web",
     "start": "npm run start --workspace=@atria/web",
     "lint": "npm run lint --workspace=@atria/web",
