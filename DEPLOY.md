@@ -55,18 +55,45 @@ mudança de código.
 
 Vercel → **New Project** → importar `andreluizcle/atria-crm`.
 
+São **duas seções diferentes** da tela, e confundi-las é o erro mais comum aqui.
+
+**1) Root Directory** — campo próprio, com um botão **Edit** ao lado. Fica
+sozinho, **fora** de "Build and Output Settings". Depois que o projeto existe,
+ele está em Settings → **Build and Deployment** → **Root Directory**.
+
 | Campo | Valor |
 |---|---|
 | Root Directory | `apps/web` |
+
+**2) Build and Output Settings** — a seção logo abaixo. Cada campo precisa que
+você ligue o **Override** para poder editar.
+
+| Campo | Valor |
+|---|---|
 | Framework Preset | Next.js (detecta sozinho) |
 | Install Command | `cd ../.. && npm install` |
 | Build Command | `cd ../.. && npm run build` |
+| Output Directory | **não mexa** — deixe o Override desligado |
 | Node.js Version | 20.x |
+
+> ⚠️ **O Output Directory é a armadilha.** Ele fica nessa segunda seção, perto do
+> Build Command, e é fácil confundir com o Root Directory. Deixe no padrão: o
+> Next.js gera em `.next` e a Vercel detecta sozinha.
+>
+> Se você preencher `apps/web` aqui, o build **passa** e o deploy falha depois
+> com `The Next.js output directory apps/web was not found` — porque esse caminho
+> é relativo ao Root Directory, e a Vercel acaba procurando em `apps/web/apps/web`.
 
 Os dois `cd ../..` existem porque isto é um monorepo npm workspaces: instalação e
 build precisam rodar da raiz para resolver `@atria/core` e `@atria/bot`, que são
 consumidos como TypeScript cru via `transpilePackages`
 (`apps/web/next.config.mjs`).
+
+> A documentação da Vercel afirma que, com o Root Directory definido, "you cannot
+> use `..` to move up a level". Na prática o build deste projeto passa com os
+> `cd ../..` — o erro citado acima só aparece na etapa seguinte, depois de o
+> build ter terminado com sucesso. Se algum dia isso mudar, o sintoma será uma
+> falha durante o `npm install`, não depois dele.
 
 ### Variáveis de ambiente
 
@@ -91,6 +118,14 @@ Sem `CASA_DOS_DADOS_API_KEY` a busca avançada por região/setor some da tela co
 um aviso de "integração não configurada" e o resto segue normal. É proposital.
 
 **Não** cadastrar `NEXT_PUBLIC_APP_URL`: nenhum código lê.
+
+### Mudou alguma configuração? Precisa redeployar
+
+Vale tanto para as variáveis de ambiente quanto para os campos de build: a
+Vercel só aplica no **próximo** deploy. Corrigir e recarregar a página não
+reprocessa o deploy que já falhou.
+
+Deployments → nos `...` do último deploy → **Redeploy**.
 
 ---
 

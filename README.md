@@ -160,11 +160,20 @@ uma falsa sensação de follow-up feito.
 > um checklist de verificação fim a fim — está em [`DEPLOY.md`](DEPLOY.md).
 > O resumo abaixo cobre só a parte da Vercel.
 
-1. **Importar o repositório** na Vercel. Configure:
-   - Root Directory: `apps/web`
-   - Build Command: `cd ../.. && npm run build`
-   - Install Command: `cd ../.. && npm install`
+1. **Importar o repositório** na Vercel. São duas seções diferentes da tela:
+   - **Root Directory** (campo próprio, com botão "Edit" ao lado, fora de "Build
+     and Output Settings"): `apps/web`
+   - Em **Build and Output Settings**:
+     - Build Command: `cd ../.. && npm run build`
+     - Install Command: `cd ../.. && npm install`
+     - Output Directory: **não mexa**, deixe o Override desligado
+
+   > ⚠️ Preencher `apps/web` no **Output Directory** — confundindo-o com o Root
+   > Directory — faz o build passar e o deploy falhar logo depois, com
+   > `The Next.js output directory apps/web was not found`.
+
 2. **Copiar todas as variáveis** do `.env.local` para Settings → Environment Variables.
+   Configuração alterada só vale no **próximo** deploy: Deployments → `...` → Redeploy.
 3. **Registrar o webhook** do Telegram, depois do primeiro deploy:
 
 ```bash
