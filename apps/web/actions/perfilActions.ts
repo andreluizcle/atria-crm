@@ -1,9 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { desvincularTelegram, envOpcional, gerarTokenVinculo } from '@atria/core';
+import {
+  atualizarNomeUsuario,
+  desvincularTelegram,
+  envOpcional,
+  garantirNomeUsuarioValido,
+  gerarTokenVinculo,
+} from '@atria/core';
 import { exigirUsuarioLogado } from '@/lib/sessao';
-import { executarAction, type ResultadoAction } from './resultado';
+import { executarAction, textoObrigatorio, type ResultadoAction } from './resultado';
 
 /**
  * Vinculo da conta do Telegram (ver core/lib/vinculoTelegram.ts).
@@ -31,6 +37,34 @@ export async function gerarLinkVinculoAction(): Promise<ResultadoLink> {
   } catch {
     return { ok: false, erro: 'Não consegui gerar o link agora. Tente de novo.' };
   }
+}
+
+/**
+ * Troca o nome de exibicao do proprio membro.
+ *
+ * Esse nome e o `{{responsavel}}` das mensagens enviadas — mudar aqui muda o que
+ * o lead le no proximo disparo. Envios ja registrados guardam o texto renderizado
+ * em `historico_contatos` e continuam com o nome antigo, que e o correto.
+ *
+ * O id vem SEMPRE da sessao, nunca do formulario: mesmo com a RLS barrando linha
+ * de outra pessoa, aceitar id de fora seria pedir para errar.
+ */
+export async function atualizarNomeAction(
+  _anterior: unknown,
+  formulario: FormData,
+): Promise<ResultadoAction> {
+  return executarAction('perfilActions.atualizarNome', async () => {
+    const { db, usuario } = await exigirUsuarioLogado();
+
+    const nome = garantirNomeUsuarioValido(textoObrigatorio(formulario, 'nome'));
+    await atualizarNomeUsuario(db, usuario.id, nome);
+
+    // 'layout' e nao so '/perfil': o nome tambem aparece na barra de navegacao
+    // (renderizada em app/(app)/layout.tsx) e na saudacao do dashboard.
+    revalidatePath('/', 'layout');
+
+    return { ok: true, mensagem: 'Nome atualizado.' };
+  });
 }
 
 export async function desvincularTelegramAction(): Promise<ResultadoAction> {

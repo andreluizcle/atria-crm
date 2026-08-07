@@ -64,6 +64,30 @@ export async function vincularTelegram(
   return data as Usuario;
 }
 
+/**
+ * Troca o nome de exibicao do membro (tela de perfil).
+ *
+ * O `.update({ nome })` e fixo de proposito. A policy `usuarios_update_proprio`
+ * autoriza a LINHA inteira, nao coluna por coluna — se esta funcao espalhasse um
+ * objeto vindo do formulario, a mesma policy deixaria o membro virar o proprio
+ * `ativo` para false ou mexer no `telegram_user_id`.
+ */
+export async function atualizarNomeUsuario(
+  db: ClienteSupabase,
+  usuarioId: string,
+  nome: string,
+): Promise<Usuario> {
+  const { data, error } = await db
+    .from(TABELA)
+    .update({ nome })
+    .eq('id', usuarioId)
+    .select('*')
+    .single();
+
+  if (error) traduzirErroSupabase('usuarioRepository.atualizarNomeUsuario', error);
+  return data as Usuario;
+}
+
 export async function desvincularTelegram(db: ClienteSupabase, usuarioId: string): Promise<void> {
   const { error } = await db.from(TABELA).update({ telegram_user_id: null }).eq('id', usuarioId);
 
