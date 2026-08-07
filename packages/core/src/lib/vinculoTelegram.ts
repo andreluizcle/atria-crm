@@ -14,15 +14,44 @@ import { ErroDeNegocio } from './erros';
  * gera um token assinado com HMAC e monta um deep link
  * `https://t.me/<bot>?start=<token>`. O bot valida a assinatura e so entao grava
  * o telegram_user_id. Nenhuma coluna nova, nenhum codigo guardado no banco.
+ *
+ * FORMATO DO TOKEN — e aqui que mora a pegadinha:
+ *
+ * O Telegram e restritivo com o parametro `start` do deep link. A documentacao
+ * (Bot API > Deep Linking) diz: "A-Z, a-z, 0-9, _ and - are allowed" e "The
+ * parameter can be up to 64 characters long".
+ *
+ * A primeira versao deste arquivo montava `uuid.expiracao.assinatura`, que da 94
+ * caracteres E contem pontos. O cliente do Telegram descartava o payload em
+ * silencio: o bot recebia um /start pelado e nenhum vinculo jamais acontecia.
+ *
+ * Por isso empacotamos em binario e serializamos em base64url, que por definicao
+ * so produz [A-Za-z0-9_-] e dispensa separador:
+ *
+ *   16 bytes  uuid do usuario, sem os hifens
+ *    4 bytes  expiracao em segundos desde a epoch (uint32 — vale ate 2106)
+ *   16 bytes  HMAC-SHA256 do corpo, truncado em 128 bits
+ *   --------
+ *   36 bytes -> 48 caracteres em base64url, dentro do limite com folga.
+ *
+ * Truncar o HMAC em 128 bits e seguro de sobra para um token de 15 minutos.
  */
 
 const VALIDADE_MINUTOS = 15;
 
-export function gerarTokenVinculo(usuarioId: string): string {
-  const expiraEm = Date.now() + VALIDADE_MINUTOS * 60_000;
-  const corpo = `${usuarioId}.${expiraEm}`;
+const BYTES_UUID = 16;
+const BYTES_EXPIRACAO = 4;
+const BYTES_ASSINATURA = 16;
+const BYTES_CORPO = BYTES_UUID + BYTES_EXPIRACAO;
+const BYTES_TOKEN = BYTES_CORPO + BYTES_ASSINATURA;
 
-  return `${corpo}.${assinar(corpo)}`;
+export function gerarTokenVinculo(usuarioId: string): string {
+  const corpo = Buffer.alloc(BYTES_CORPO);
+
+  Buffer.from(usuarioId.replace(/-/g, ''), 'hex').copy(corpo, 0);
+  corpo.writeUInt32BE(Math.floor(Date.now() / 1000) + VALIDADE_MINUTOS * 60, BYTES_UUID);
+
+  return Buffer.concat([corpo, assinar(corpo)]).toString('base64url');
 }
 
 export interface VinculoValidado {
@@ -31,38 +60,50 @@ export interface VinculoValidado {
 
 /** Lanca ErroDeNegocio com motivo legivel se o token for invalido ou vencido. */
 export function validarTokenVinculo(token: string): VinculoValidado {
-  const partes = token.split('.');
-  if (partes.length !== 3) {
+  // Buffer.from nao lanca em entrada invalida — ele decodifica o que conseguir e
+  // ignora o resto. Quem barra lixo aqui e o comprimento, nao o parser.
+  const bruto = Buffer.from(token, 'base64url');
+
+  if (bruto.length !== BYTES_TOKEN) {
     throw new ErroDeNegocio('Link de vínculo inválido. Gere um novo no painel.');
   }
 
-  const [usuarioId, expiraEmTexto, assinatura] = partes as [string, string, string];
-  const corpo = `${usuarioId}.${expiraEmTexto}`;
+  const corpo = bruto.subarray(0, BYTES_CORPO);
+  const assinatura = bruto.subarray(BYTES_CORPO);
 
   if (!assinaturaConfere(corpo, assinatura)) {
     throw new ErroDeNegocio('Link de vínculo inválido. Gere um novo no painel.');
   }
 
-  const expiraEm = Number(expiraEmTexto);
-  if (!Number.isFinite(expiraEm) || expiraEm < Date.now()) {
+  // A expiracao so e checada depois da assinatura: sem isso, daria para saber se
+  // um token forjado "expirou" ou nao, o que vaza informacao a toa.
+  const expiraEm = corpo.readUInt32BE(BYTES_UUID);
+  if (expiraEm * 1000 < Date.now()) {
     throw new ErroDeNegocio('Este link de vínculo expirou. Gere um novo no painel.');
   }
 
-  return { usuarioId };
+  return { usuarioId: formatarUuid(corpo.subarray(0, BYTES_UUID)) };
 }
 
-function assinar(corpo: string): string {
+function assinar(corpo: Buffer): Buffer {
   // Reaproveita o segredo do webhook: e um valor que ja precisa existir e que
   // nunca sai do servidor.
-  return createHmac('sha256', requerEnv('TELEGRAM_WEBHOOK_SECRET')).update(corpo).digest('base64url');
+  return createHmac('sha256', requerEnv('TELEGRAM_WEBHOOK_SECRET'))
+    .update(corpo)
+    .digest()
+    .subarray(0, BYTES_ASSINATURA);
 }
 
-function assinaturaConfere(corpo: string, recebida: string): boolean {
+function assinaturaConfere(corpo: Buffer, recebida: Buffer): boolean {
   const esperada = assinar(corpo);
-  const bufEsperada = Buffer.from(esperada);
-  const bufRecebida = Buffer.from(recebida);
 
   // Comprimentos diferentes fazem timingSafeEqual lancar; comparamos antes.
-  if (bufEsperada.length !== bufRecebida.length) return false;
-  return timingSafeEqual(bufEsperada, bufRecebida);
+  if (esperada.length !== recebida.length) return false;
+  return timingSafeEqual(esperada, recebida);
+}
+
+function formatarUuid(bytes: Buffer): string {
+  const hex = bytes.toString('hex');
+
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
 }
