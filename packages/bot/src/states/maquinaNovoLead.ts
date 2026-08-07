@@ -1,4 +1,4 @@
-import { criarLead, listarUsuariosAtivos, type NovoLead } from '@atria/core';
+import { criarLead, type NovoLead } from '@atria/core';
 import type { ContextoAutenticado } from '../contexto';
 import { tecladoConfirmacao, tecladoDeOpcoes, tecladoObrigatorio, tecladoPular } from '../keyboards/botoes';
 import { formatarResumoCadastro } from '../formatters/leadFormatter';
@@ -30,17 +30,6 @@ export async function perguntarPasso(ctx: ContextoAutenticado, indice: number): 
     await ctx.reply(passo.pergunta, {
       parse_mode: 'HTML',
       ...tecladoDeOpcoes(passo.opcoes ?? []),
-    });
-    return;
-  }
-
-  if (passo.tipo === 'membro') {
-    const membros = await listarUsuariosAtivos(ctx.db);
-    const opcoes = membros.map((m) => ({ rotulo: m.nome, valor: m.id }));
-
-    await ctx.reply(passo.pergunta, {
-      parse_mode: 'HTML',
-      ...tecladoDeOpcoes(opcoes, 1),
     });
     return;
   }
@@ -86,10 +75,9 @@ export async function mostrarResumo(ctx: ContextoAutenticado): Promise<void> {
   const { valores } = dadosDaSessao<DadosNovoLead>(ctx);
   await avancarPasso(ctx, PASSO_CONFIRMACAO);
 
-  const membros = await listarUsuariosAtivos(ctx.db);
-  const responsavel = membros.find((m) => m.id === valores?.responsavel_id);
-
-  await ctx.reply(formatarResumoCadastro(valores ?? {}, responsavel?.nome ?? null), {
+  // O responsavel e sempre quem esta cadastrando — o bot nao pergunta mais. Ainda
+  // aparece no resumo para a atribuicao ficar visivel antes de confirmar.
+  await ctx.reply(formatarResumoCadastro(valores ?? {}, ctx.usuario.nome), {
     parse_mode: 'HTML',
     ...tecladoConfirmacao(),
   });
@@ -99,8 +87,12 @@ export async function mostrarResumo(ctx: ContextoAutenticado): Promise<void> {
 export async function salvarLead(ctx: ContextoAutenticado): Promise<void> {
   const { valores } = dadosDaSessao<DadosNovoLead>(ctx);
 
+  // Quem cadastra fica como responsavel. O bot deixou de perguntar isso: qualquer
+  // membro cadastra lead, mesmo fora do comercial, e nao cabe a ele distribuir.
+  // A troca de responsavel, quando precisa, e feita no painel.
   const lead = await criarLead(ctx.db, {
     ...valores,
+    responsavel_id: ctx.usuario.id,
     criado_por: ctx.usuario.id,
   } as unknown as NovoLead);
 
@@ -132,7 +124,6 @@ function rotuloDoCampo(campo: string): string {
     site: 'Site',
     cnpj: 'CNPJ',
     origem_lead: 'Origem',
-    responsavel_id: 'Responsável',
     observacoes: 'Observações',
   };
   return rotulos[campo] ?? campo;

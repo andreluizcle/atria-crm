@@ -25,8 +25,8 @@ export interface PassoCadastro {
   campo: string;
   pergunta: string;
   opcional: boolean;
-  /** 'escolha' mostra botoes fixos; 'membro' monta botoes com os membros ativos. */
-  tipo: 'texto' | 'escolha' | 'membro';
+  /** 'escolha' mostra botoes fixos. */
+  tipo: 'texto' | 'escolha';
   opcoes?: Array<{ rotulo: string; valor: string }>;
   /** Valida e ja devolve o valor normalizado que sera gravado. */
   validar?: (texto: string) => ResultadoValidacaoPasso;
@@ -106,14 +106,8 @@ export const PASSOS_NOVO_LEAD: PassoCadastro[] = [
     opcoes: ORIGENS_LEAD.map((origem) => ({ rotulo: ROTULO_ORIGEM_LEAD[origem], valor: origem })),
   },
   {
-    campo: 'responsavel_id',
-    pergunta: '9️⃣ Quem da EJ vai cuidar desse lead?',
-    opcional: false,
-    tipo: 'membro',
-  },
-  {
     campo: 'observacoes',
-    pergunta: '🔟 Alguma <b>observação</b>? (contexto, quem indicou, o que conversaram...)',
+    pergunta: '9️⃣ Alguma <b>observação</b>? (contexto, quem indicou, o que conversaram...)',
     opcional: true,
     tipo: 'texto',
     validar: (texto) => ({ ok: true, valor: texto.trim() }),

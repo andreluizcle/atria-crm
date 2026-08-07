@@ -43,7 +43,7 @@ export function registrarNovoLead(bot: Telegraf<ContextoAtria>): void {
     await registrarValorEAvancar(ctx as ContextoAutenticado, indice, passo.campo, null);
   });
 
-  // Escolha de origem do lead ou de membro responsavel.
+  // Escolha de opcao em botao — hoje so a origem do lead.
   bot.action(new RegExp(`^${PREFIXOS.opcao}`), async (ctx) => {
     await ctx.answerCbQuery();
     if (!fluxoAtivo(ctx, FLUXOS.novoLead) || !ctx.usuario) return;

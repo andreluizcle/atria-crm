@@ -12,7 +12,7 @@ export const CB = {
   CONFIRMAR: 'nl:conf',
   CANCELAR: 'nl:canc',
   EDITAR: 'nl:edit',
-  /** Escolha de opcao fixa (origem do lead) ou de membro responsavel. */
+  /** Escolha de opcao fixa — hoje so a origem do lead. */
   opcao: (valor: string) => `nl:opt:${valor}`,
   editarCampo: (campo: string) => `nl:ed:${campo}`,
 
