@@ -1,6 +1,7 @@
 import type { EmpresaCnpj, FiltroBuscaEmpresas, ResultadoBuscaEmpresas } from '../types/cnpj';
 import { envOpcional } from './env';
 import { ErroDeIntegracao, ErroDeNegocio } from './erros';
+import { cabecalhosPadrao } from './http';
 
 /**
  * Busca avancada de empresas por regiao/setor — API oficial da Casa dos Dados (spec 6.5b).
@@ -70,11 +71,10 @@ export async function pesquisarEmpresas(filtro: FiltroBuscaEmpresas): Promise<Re
   try {
     resposta = await fetch(`${URL_PESQUISA}?tipo_resultado=completo`, {
       method: 'POST',
-      headers: {
+      headers: cabecalhosPadrao({
         'api-key': apiKey,
         'Content-Type': 'application/json',
-        accept: 'application/json',
-      },
+      }),
       body: JSON.stringify(corpo),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });

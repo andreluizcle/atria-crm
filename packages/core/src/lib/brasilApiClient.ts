@@ -1,5 +1,6 @@
 import type { EmpresaCnpj } from '../types/cnpj';
 import { ErroDeIntegracao, ErroDeNegocio } from './erros';
+import { cabecalhosPadrao } from './http';
 import { limparCnpj, validarCnpj } from '../validacao/cnpj';
 
 /**
@@ -41,7 +42,7 @@ export async function consultarCnpjNaBrasilApi(cnpjEntrada: string): Promise<Emp
   let resposta: Response;
   try {
     resposta = await fetch(`${BASE_URL}/${cnpj}`, {
-      headers: { accept: 'application/json' },
+      headers: cabecalhosPadrao(),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch (causa) {
@@ -50,6 +51,14 @@ export async function consultarCnpjNaBrasilApi(cnpjEntrada: string): Promise<Emp
 
   if (resposta.status === 404) {
     throw new ErroDeNegocio('CNPJ não encontrado na base da Receita Federal.', ['cnpj']);
+  }
+
+  // O Cloudflare da BrasilAPI bloqueia por User-Agent, nao por CNPJ. Se isso
+  // voltar a acontecer, o suspeito e `cabecalhosPadrao()` — nao o dado enviado.
+  if (resposta.status === 403) {
+    throw new ErroDeIntegracao('a BrasilAPI', 'A consulta foi bloqueada (403). Confira o User-Agent enviado.', {
+      status: 403,
+    });
   }
 
   if (resposta.status === 429) {
