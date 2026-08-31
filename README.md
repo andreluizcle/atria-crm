@@ -81,6 +81,10 @@ cp .env.example .env.local
 | `TELEGRAM_BOT_USERNAME` | o @ do bot, sem a arroba | ✅ para o bot |
 | `RESEND_API_KEY` | [resend.com/api-keys](https://resend.com/api-keys) | ✅ para enviar e-mail |
 | `EMAIL_REMETENTE` | endereço de domínio verificado no Resend | ✅ para enviar e-mail |
+
+O plano gratuito do Resend entrega **100 e-mails por dia** e 3.000 por mês.
+O passo a passo de verificação do domínio está em
+[`docs/Configurar-envio-de-email.md`](docs/Configurar-envio-de-email.md).
 | `CASA_DOS_DADOS_API_KEY` | Casa dos Dados (API paga) | ❌ opcional |
 
 Sem `CASA_DOS_DADOS_API_KEY`, tudo funciona — só a busca por região/setor mostra
@@ -147,6 +151,12 @@ Por isso o sistema prepara, e a pessoa envia.
 
 E-mail é a exceção deliberada: é o canal de menor risco para leads individuais,
 e por isso o envio é automático de fato.
+
+> ⚠️ **O teto do plano gratuito do Resend é diário, não só mensal:**
+> **100 e-mails por dia** e 3.000 por mês (e até 3 domínios). Numa prospecção em
+> lote é o limite diário que aparece primeiro — vale saber antes de prometer
+> volume. Passou do teto, o envio falha e o sistema grava a linha como `falhou`
+> com o motivo, em vez de sumir com ela.
 
 Isso aparece no histórico: disparos manuais ficam como `preparado`, e-mails
 efetivamente entregues ficam como `enviado`. Marcar tudo como "enviado" daria
@@ -249,7 +259,7 @@ Coisas conscientemente **fora** deste escopo, para a próxima gestão avaliar:
 5. **Relatórios de conversão por origem** — o dado já está em `leads.origem_lead`
    e em `historico_contatos`; falta a tela.
 6. **Notificação de follow-up** — avisar no Telegram quando um lead está parado
-   em `contatado` há mais de N dias.
+   na mesma etapa do funil há mais de N dias.
 7. **Testes de integração** dos fluxos do bot, com um banco Supabase de teste.
 
 ---

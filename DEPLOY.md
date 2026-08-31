@@ -8,9 +8,39 @@ como ligá-lo.
 > serve o webhook do Telegram é o próprio app Next.js, em
 > `apps/web/app/api/telegram/webhook/route.ts`. Subir o painel sobe o bot junto.
 
-Estado atual do banco: o projeto Supabase **CRMAtria**
-(`aagvvuwkhodfbxafcody`) já está com as 4 migrations aplicadas e o schema
-validado. Falta tudo que é externo ao repositório.
+Estado atual do banco: o projeto Supabase é o **CRM Project**
+(`tqtrvxhqlirlvjniawgn`), na org **Atria Jr. Org**, região `sa-east-1` (São
+Paulo). As 4 migrations estão aplicadas e o schema validado. O projeto anterior
+(`CRMAtria`, `aagvvuwkhodfbxafcody`, org pessoal, `us-west-2`) foi substituído.
+Falta tudo que é externo ao repositório.
+
+> ⚠️ **O banco vai para a conta da Atria, em São Paulo.** O `CRMAtria` original
+> nasceu na org pessoal `andreluizcle's Org` e em `us-west-2`. Como transferir
+> projeto entre orgs **não muda a região**, e os dados do banco antigo eram
+> descartáveis, a decisão foi **recriar** na conta institucional em `sa-east-1`.
+>
+> O schema inteiro está nas 4 migrations, que são idempotentes — rodar
+> `0001` → `0002` → `0003` → `0004` num projeto vazio reproduz tabelas, índices,
+> tipos, triggers, funções, RLS, grants e os 4 templates do seed. O `0003` não
+> depende de nenhum usuário existir antes.
+>
+> **Ordem, por causa do limite do plano Free** (2 projetos ativos, contados entre
+> todos os membros Owner/Admin da org): a conta da Atria **cria o projeto
+> primeiro**, e só **depois** convida os mantenedores como Owner/Admin. Invertido,
+> a org herda a cota já estourada de quem entrou e não deixa criar.
+>
+> Fora das migrations, no painel do projeto novo:
+>
+> - criar o primeiro usuário (passo 0.1 abaixo);
+> - Authentication → URL Configuration → **Site URL** = `https://crm.atriajr.com.br`;
+> - ligar a proteção contra senha vazada (nasce desligada).
+>
+> O `ref` novo troca **três** variáveis — `NEXT_PUBLIC_SUPABASE_URL`,
+> `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` — nos dois
+> lugares (`.env.local` e Vercel), com redeploy. Telegram e Resend não mudam.
+>
+> **Só apague o projeto antigo depois** que o painel estiver logando pelo banco
+> novo em produção: até lá ele é o rollback.
 
 ---
 
@@ -37,6 +67,8 @@ Sem estes quatro itens nada funciona.
       os links de vínculo pendentes.
 
 - [ ] **0.4 — Conta no Resend** (resend.com) → pegar a API key.
+      ⚠️ Plano gratuito: **100 e-mails por dia**, 3.000 por mês, até 3 domínios.
+      O teto diário é o que trava uma prospecção em lote primeiro.
 
 ### Sobre o remetente de e-mail
 
@@ -48,6 +80,9 @@ precisa ter esse endereço.
 Para prospectar de verdade, depois: verificar um domínio da Atria no Resend
 (registros DNS SPF/DKIM) e trocar **só o valor** de `EMAIL_REMETENTE`. Nenhuma
 mudança de código.
+
+📄 O passo a passo completo — incluindo um pedido pronto para mandar a quem tem
+acesso ao DNS — está em [`docs/Configurar-envio-de-email.md`](docs/Configurar-envio-de-email.md).
 
 ---
 
@@ -101,7 +136,7 @@ Settings → Environment Variables. Marcar **Production** e **Preview**.
 
 | Variável | Onde achar |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://aagvvuwkhodfbxafcody.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://tqtrvxhqlirlvjniawgn.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API |
 | `TELEGRAM_BOT_TOKEN` | passo 0.2 |
@@ -126,6 +161,88 @@ Vercel só aplica no **próximo** deploy. Corrigir e recarregar a página não
 reprocessa o deploy que já falhou.
 
 Deployments → nos `...` do último deploy → **Redeploy**.
+
+### Domínio próprio — `crm.atriajr.com.br`
+
+A URL `*.vercel.app` continua funcionando depois disso; o domínio próprio só
+acrescenta um endereço estável e apresentável. O DNS de `atriajr.com.br` está na
+GoDaddy (`ns81`/`ns82.domaincontrol.com`) — é lá que o registro é criado.
+
+> ⚠️ **Duas posses diferentes, com pesos diferentes.** O **repositório** é o
+> produto — precisa ser institucional. O **projeto da Vercel** é configuração
+> recriável em ~20 minutos com as tabelas desta Fase 1.
+>
+> **O repositório vai para a org da Atria agora.** Repo → Settings → *Danger
+> Zone* → **Transfer** → *Select one of my organizations*. Leva commits, issues,
+> PRs, e os links antigos redirecionam. Org GitHub Free tem repos privados
+> ilimitados. **Não forkar** — fork copia em vez de mover, e a doc do GitHub diz
+> que um fork de upstream privado *não pode* ser transferido depois. Depois:
+>
+> ```bash
+> git remote set-url origin https://github.com/<org-da-atria>/atria-crm.git
+> ```
+>
+> **O projeto da Vercel é o caso complicado.** Da doc de colaboração:
+>
+> > "The Hobby Plan does not support collaboration for private repositories."
+> > "To deploy commits under a Hobby team, the commit author must be the owner of
+> > the Hobby team containing the Vercel project connected to the Git repository."
+>
+> Logo, pôr o projeto num time **Hobby institucional** e continuar dando push com
+> a identidade pessoal **quebra o deploy automático** — o build simplesmente não
+> roda. E a transferência de projeto entre times também não serve: exige ser
+> *member* do time destino, e adicionar membro é recurso Pro.
+>
+> | Configuração | Custo | O que quebra |
+> |---|---|---|
+> | Time **Pro** da Atria | US$ 20/mês por seat dev (*Viewer* grátis) | nada — é o desenho certo |
+> | **Hobby** da Atria + repo **público** | grátis | nada no deploy; o código fica aberto |
+> | **Hobby** da Atria + repo **privado** | grátis | **o deploy automático** |
+>
+> **Enquanto o Pro não for aprovado:** transferir só o repositório e deixar o
+> projeto da Vercel na conta pessoal de quem mantém — o deploy funciona porque
+> essa pessoa é dona do time *e* autora dos commits. Na passagem de bastão, a
+> próxima pessoa importa o repo (já da Atria) na conta dela e refaz esta Fase 1.
+>
+> **Consequência para o `crm`:** nesse arranjo o domínio fica registrado no
+> escopo Vercel pessoal. O CNAME mora na GoDaddy (institucional), então trocar
+> depois é editar um valor — mas quem quiser evitar isso adia o `crm` e usa a URL
+> `.vercel.app` até a Atria ter conta própria.
+
+**1) Na Vercel:** projeto → Settings → **Domains** → **Add Domain** → digitar
+`crm.atriajr.com.br`. Por ser **subdomínio**, a Vercel pede um **CNAME**.
+
+> ⚠️ **Copie o valor que a tela mostrar, não um valor decorado.** Hoje cada
+> projeto tem um CNAME próprio, no formato `<hash>.vercel-dns-0XX.com`. O antigo
+> `cname.vercel-dns.com` não serve para todo projeto.
+
+**2) Na GoDaddy:** DNS → **Add New Record**:
+
+| Tipo | Name | Value | TTL |
+|---|---|---|---|
+| `CNAME` | `crm` | o que a Vercel mostrou | 600 / padrão |
+
+Só `crm` no campo Name — a GoDaddy anexa o `.atriajr.com.br` sozinha.
+
+**O que isso não afeta** (conferido por consulta de DNS ao domínio):
+
+| O que já existe hoje | Continua intacto |
+|---|---|
+| `A` do raiz → `173.201.179.76` (o site atual da EJ) | sim |
+| `CNAME www` → raiz | sim |
+| Os cinco `MX` do Google Workspace | sim |
+| O `SPF` do raiz | sim |
+
+Um CNAME em `crm` só responde por `crm.atriajr.com.br`. Nenhum dos registros
+acima precisa ser tocado — e nenhum deles deve ser.
+
+**3) Voltar na Vercel** e esperar o status virar **Valid Configuration**. O
+certificado HTTPS é emitido sozinho.
+
+**4) Repontar o webhook do Telegram** para o endereço novo: refazer o passo 2.2
+trocando `SEU-APP.vercel.app` por `crm.atriajr.com.br`. Não é obrigatório — a URL
+da Vercel continua de pé — mas tira o webhook da dependência de um endereço que
+pode mudar.
 
 ---
 
