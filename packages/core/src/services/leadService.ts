@@ -19,7 +19,7 @@ export async function criarLead(db: ClienteSupabase, entrada: NovoLead): Promise
   const normalizado = normalizarCamposDoLead(entrada);
   garantirLeadValido(normalizado);
 
-  return criarNoBanco(db, { status: 'novo', ...normalizado });
+  return criarNoBanco(db, { status: 'pendente', ...normalizado });
 }
 
 export async function atualizarLead(

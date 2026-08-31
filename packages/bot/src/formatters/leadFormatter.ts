@@ -87,11 +87,13 @@ export function formatarData(iso: string): string {
 
 function emojiDoStatus(status: StatusLead): string {
   const emojis: Record<StatusLead, string> = {
-    novo: '🆕',
-    contatado: '📤',
-    respondeu: '💬',
-    descartado: '🚫',
+    pendente: '🕓',
+    qualificacao: '🔎',
+    diagnostico: '🩺',
+    proposta: '📄',
+    negociacao: '🤝',
     fechado: '🎉',
+    perdido: '🚫',
   };
   return emojis[status];
 }

@@ -19,11 +19,8 @@ export default async function PaginaDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Indicador rotulo="Leads ativos" valor={resumo.total} />
-        <Indicador
-          rotulo="Já responderam"
-          valor={(resumo.porStatus.find((s) => s.status === 'respondeu')?.total ?? 0)}
-        />
-        <Indicador rotulo="Taxa de resposta" valor={`${resumo.taxaDeResposta}%`} />
+        <Indicador rotulo="Em andamento" valor={resumo.emAndamento} />
+        <Indicador rotulo="Taxa de fechamento" valor={`${resumo.taxaDeFechamento}%`} />
       </div>
 
       {resumo.total === 0 ? (

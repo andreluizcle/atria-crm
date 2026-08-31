@@ -6,7 +6,15 @@
 export const ORIGENS_LEAD = ['indicacao', 'linkedin', 'evento', 'busca_cnpj', 'outro'] as const;
 export type OrigemLead = (typeof ORIGENS_LEAD)[number];
 
-export const STATUS_LEAD = ['novo', 'contatado', 'respondeu', 'descartado', 'fechado'] as const;
+export const STATUS_LEAD = [
+  'pendente',
+  'qualificacao',
+  'diagnostico',
+  'proposta',
+  'negociacao',
+  'fechado',
+  'perdido',
+] as const;
 export type StatusLead = (typeof STATUS_LEAD)[number];
 
 export const PLATAFORMAS = ['whatsapp', 'instagram', 'linkedin', 'email'] as const;
@@ -28,11 +36,13 @@ export const ROTULO_ORIGEM_LEAD: Record<OrigemLead, string> = {
 };
 
 export const ROTULO_STATUS_LEAD: Record<StatusLead, string> = {
-  novo: 'Novo',
-  contatado: 'Contatado',
-  respondeu: 'Respondeu',
-  descartado: 'Descartado',
+  pendente: 'Pendente',
+  qualificacao: 'Qualificação',
+  diagnostico: 'Diagnóstico',
+  proposta: 'Proposta',
+  negociacao: 'Negociação',
   fechado: 'Fechado',
+  perdido: 'Perdido',
 };
 
 export const ROTULO_PLATAFORMA: Record<Plataforma, string> = {

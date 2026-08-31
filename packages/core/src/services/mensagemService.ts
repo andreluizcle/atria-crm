@@ -83,7 +83,7 @@ export const LEAD_DE_EXEMPLO: Lead = {
   linkedin: null,
   cnpj: null,
   origem_lead: 'indicacao',
-  status: 'novo',
+  status: 'pendente',
   responsavel_id: '00000000-0000-0000-0000-000000000000',
   observacoes: null,
   criado_por: '00000000-0000-0000-0000-000000000000',

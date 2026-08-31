@@ -36,11 +36,13 @@ function rotuloDoLead(lead: LeadComResponsavel): string {
 
 function emojiDoStatus(status: LeadComResponsavel['status']): string {
   const emojis: Record<LeadComResponsavel['status'], string> = {
-    novo: '🆕',
-    contatado: '📤',
-    respondeu: '💬',
-    descartado: '🚫',
+    pendente: '🕓',
+    qualificacao: '🔎',
+    diagnostico: '🩺',
+    proposta: '📄',
+    negociacao: '🤝',
     fechado: '🎉',
+    perdido: '🚫',
   };
   return emojis[status];
 }

@@ -83,7 +83,7 @@ export async function importarEmpresasComoLeads(
         email: empresa.email,
         cnpj,
         origem_lead: 'busca_cnpj',
-        status: 'novo',
+        status: 'pendente',
         responsavel_id: params.responsavelId,
         criado_por: params.criadoPor,
         observacoes: montarObservacoes(empresa),

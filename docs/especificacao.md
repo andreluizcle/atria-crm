@@ -71,7 +71,7 @@ Este é um requisito tão importante quanto as funcionalidades:
 | `linkedin` | text | não* | |
 | `cnpj` | text | não | preenchido se vier de busca por CNPJ |
 | `origem_lead` | enum/text | sim | `indicacao`, `linkedin`, `evento`, `busca_cnpj`, `outro` |
-| `status` | enum/text | sim, default `novo` | `novo`, `contatado`, `respondeu`, `descartado`, `fechado` |
+| `status` | enum/text | sim, default `pendente` | `pendente`, `qualificacao`, `diagnostico`, `proposta`, `negociacao`, `fechado`, `perdido` |
 | `responsavel_id` | uuid (FK → usuarios) | sim | quem da EJ está cuidando |
 | `observacoes` | text | não | texto livre |
 | `criado_por` (telegram_user_id ou usuario_id) | text/uuid | sim | quem cadastrou o lead |

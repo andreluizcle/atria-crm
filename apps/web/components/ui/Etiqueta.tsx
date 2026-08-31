@@ -2,12 +2,16 @@ import { ROTULO_PLATAFORMA, ROTULO_STATUS_LEAD, type Plataforma, type StatusLead
 
 /** Etiquetas coloridas de status e plataforma, para a lista e a ficha do lead. */
 
+// O azul escurece conforme o lead avanca no funil, para dar nocao de progresso
+// batendo o olho. Amarelo/verde/vermelho seguem a paleta semantica de Aviso.tsx.
 const CORES_STATUS: Record<StatusLead, string> = {
-  novo: 'bg-slate-100 text-slate-700 ring-slate-200',
-  contatado: 'bg-blue-50 text-blue-700 ring-blue-200',
-  respondeu: 'bg-amber-50 text-amber-700 ring-amber-200',
-  descartado: 'bg-red-50 text-red-700 ring-red-200',
+  pendente: 'bg-amber-50 text-amber-700 ring-amber-200',
+  qualificacao: 'bg-blue-50 text-blue-700 ring-blue-200',
+  diagnostico: 'bg-blue-100 text-blue-800 ring-blue-300',
+  proposta: 'bg-blue-200 text-blue-900 ring-blue-400',
+  negociacao: 'bg-blue-300 text-blue-950 ring-blue-500',
   fechado: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  perdido: 'bg-red-50 text-red-700 ring-red-200',
 };
 
 export function EtiquetaStatus({ status }: { status: StatusLead }) {

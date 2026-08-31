@@ -112,7 +112,7 @@ export function FormularioLead({
             <label className="rotulo" htmlFor="status">
               Status *
             </label>
-            <select id="status" name="status" required className="campo" defaultValue={lead?.status ?? 'novo'}>
+            <select id="status" name="status" required className="campo" defaultValue={lead?.status ?? 'pendente'}>
               {STATUS_LEAD.map((status) => (
                 <option key={status} value={status}>
                   {ROTULO_STATUS_LEAD[status]}
